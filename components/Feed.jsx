@@ -1,67 +1,71 @@
-
 import React from "react";
-import { View, StyleSheet, Text, FlatList, Dimensions } from "react-native";
+import {
+  View,
+  StyleSheet,
+  Text,
+  FlatList,
+  Dimensions,
+  TouchableHighlight,
+} from "react-native";
 import { getFeed } from "../utils/Vids";
 import { Video } from "expo-av";
 
 let width = Dimensions.get("window").width;
 let height = Dimensions.get("window").height;
 
-
 const Feed = () => {
-
-
   let vidRef = React.useRef(null);
 
   const [currentVid, setCurrentVid] = React.useState(0);
-  
+
   const [posts, setPosts] = React.useState([]);
 
   React.useEffect(() => {
     getFeed().then((res) => {
+      console.log("RES", res);
       const uuids = res.map((item) => item.uuid);
       setPosts(uuids);
     });
   }, []);
-
-  const onReadyForDisplay = (e) => {
-    // console.log("READY FOR DISPLAY");
-  };
-
-  const videoStatus = (e) => {
-    // console.log("VIDEO STATUS", e);
-  };
 
   const viewabilityConfigCallbackPairs = React.useRef(
     ({ changed, viewableItems }) => {
       console.log("CHANGED", changed);
       console.log("VIEWABLE ITEMS", viewableItems);
 
-     if (changed.length > 0) {
+      if (changed.length > 0) {
         setCurrentVid(changed[0].index);
       }
-
     }
   );
 
+  const renderVids = ({ item, index }) => {
+    
+    const onPlayPausePress = () => {
+      // pausing.
+      if (index === currentVid) {
+        setCurrentVid(-1);
+      } else {
+        setCurrentVid(index);
+      }
+    };
 
-  const renderVids = ({ item , index}) => {
     return (
-      <Video
-        ref={vidRef}
-        source={{
-          uri: `https://customer-jg3x48cebqepyjii.cloudflarestream.com/${item}/manifest/video.m3u8`,
-        }}
-        rate={1.0}
-        volume={1.0}
-        onReadyForDisplay={onReadyForDisplay}
-        isMuted={false}
-        resizeMode="cover"
-        shouldPlay={index === currentVid}
-        isLooping
-        onPlaybackStatusUpdate={videoStatus}
-        style={styles.videos}
-      />
+      <TouchableHighlight onPress={onPlayPausePress}>
+        <Video
+          ref={vidRef}
+          source={{
+            uri: `https://customer-jg3x48cebqepyjii.cloudflarestream.com/${item}/manifest/video.m3u8`,
+          }}
+          rate={1.0}
+          volume={1.0}
+          isMuted={false}
+          resizeMode="cover"
+          shouldPlay={index === currentVid}
+          isLooping
+          style={styles.videos}
+        />
+      </TouchableHighlight>
     );
   };
 
